@@ -1,0 +1,6 @@
+# base image: Ubuntu
+FROM ubuntu:22.04
+RUN apt-get update --fix-missing \
+&& apt-get install -y subread 
+
+ENTRYPOINT ["featureCounts"]

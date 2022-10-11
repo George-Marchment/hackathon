@@ -1,0 +1,15 @@
+# base image: Ubuntu
+FROM centos:7
+RUN yum -y update \
+&& yum install -y wget unzip perl git make gcc-c++ glivc-static zlib1g-dev zlib-devel gcc \
+&& cd /usr/local/ \
+
+&& wget https://github.com/alexdobin/STAR/archive/2.7.10a.tar.gz \
+&& tar -xzf 2.7.10a.tar.gz \
+&& rm 2.7.10a.tar.gz \
+&& cd STAR-2.7.10a\
+&& cd source \
+&& make STAR \
+&& chmod 755 STAR 
+
+ENTRYPOINT ["/usr/local/STAR-2.7.10a/source/STAR"]

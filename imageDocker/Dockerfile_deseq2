@@ -1,0 +1,21 @@
+# base image: Ubuntu
+FROM ubuntu:22.04
+RUN apt-get update --fix-missing -qq \
+&& apt-get install -y --no-install-recommends software-properties-common dirmngr \
+&& apt-get install -y wget  \
+&& apt-get install -y tzdata \
+&& apt-get install -y  build-essential \
+&& apt-get install -y libssl-dev libz-dev libpng-dev libblas-dev liblapack-dev libcurl4-openssl-dev libxml2-dev pkg-config gfortran  \
+&& wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc |  tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc \
+&& add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" \
+&& apt-get install -y --no-install-recommends r-base \
+
+&& R -e "install.packages('BiocManager')" \
+&& R -e "BiocManager::install('DESeq2')" \
+
+&& apt-get remove -y  wget build-essential \
+&& apt-get remove -y libssl-dev libz-dev libpng-dev libblas-dev liblapack-dev libcurl4-openssl-dev libxml2-dev pkg-config gfortran \
+&& apt-get autoremove -y \
+&& apt-get clean
+
+#ENTRYPOINT["/usr/local/bin/DESeq2"]

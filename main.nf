@@ -6,13 +6,13 @@ process downloadFastqFiles {
     */
 
     //publishDir 'data/seqs' //, mode: 'copy'
-    label 'downloadFastqFiles'
+    label 'SRA'
 
     input:
         val SRAID
 
     output:
-        path "*" 
+        tuple val(SRAID), path ("*R1.fastq"), path ("*R2.fastq")  
 
     script:
         """
@@ -28,6 +28,8 @@ process downloadGenome {
 
     label 'downloadGenome'
 
+    publishDir 'results/genome'
+
     input : 
         val CHR
 
@@ -37,9 +39,27 @@ process downloadGenome {
     script:
         """
         wget ftp://ftp.ensembl.org/pub/release-101/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.${CHR}.fa.gz
-        gunzip -c *.fa.gz > referenceGenome.fa
+        gunzip -c *.fa.gz > referenceGenomeChr${CHR}.fa
         rm *gz
         """
+}
+
+process concatenateGenome {
+
+    label 'concatenateGenome'
+
+    publishDir 'results/genome'
+
+    input :
+        path(genome)
+    
+    output : 
+        path "*.fa"
+
+    script :
+    """
+    cat ${genome} > referenceGenome.fa
+    """
 }
 
 process genomeAnnotations {
@@ -114,6 +134,7 @@ process mappingFastQ {
 }
 
 log.info """\
+
  H A C K A T H O N  P I P E L I N E
 ===================================
 
@@ -126,7 +147,7 @@ log.info """\
  """
 
 workflow {
-    //Il faudra mettre des options pour l'utilisateur pour télécharger les données (qu'il faudra placé à des endroits précis)
+    //Il faudra mettre des options pour l'utilisateur pour télécharger les données (qu'il faudra placer à des endroits précis)
     //Sinon juste pour l'analyse -> une option analyse qui ne télécharge pas les données (pour éviter de le faire tout le temps)
 
     //il faudrait mettre en param : le nb de coeurs et autres parametres generaux
@@ -141,8 +162,8 @@ workflow {
     
     //Download genome and annotation
     if (params.downloadGenome == true){
-        downloadGenome(Channel.from(params.CHR))
-        pathG = downloadGenome.out
+        concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
+        pathG = concatenateGenome.out
     }else{
         pathG = Channel.fromPath('work/**/referenceGenome.fa', checkIfExists : true, followLinks: false)  
     }

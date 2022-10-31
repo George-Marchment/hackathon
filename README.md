@@ -10,5 +10,6 @@ sudo apt install -y git-all
 conda activate
 mamba install -y  singularity=3.6.3
 conda install -c bioconda -y nextflow
+conda update -y nextflow
 ```
 

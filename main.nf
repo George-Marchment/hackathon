@@ -5,14 +5,14 @@ process downloadFastqFiles {
     @return : all the fastq download
     */
 
-    //publishDir 'data/seqs' //, mode: 'copy'
+    publishDir 'data/seqs', mode: 'copy'
     label 'SRA'
 
     input:
         val SRAID
 
     output:
-        tuple val(SRAID), path ("*R1.fastq"), path ("*R2.fastq")  
+        tuple val(SRAID), path ("*1.fastq"), path ("*2.fastq")  
 
     script:
         """

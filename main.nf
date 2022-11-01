@@ -118,7 +118,7 @@ process mappingFastQ {
 
     input:
         tuple val(sample), path(fastq1), path(fastq2)
-        each GenomeDir
+        path GenomeDir
 
     output: 
         file "*.bam"
@@ -136,6 +136,54 @@ process mappingFastQ {
         """
 }
 
+
+process indexBam {
+
+	/*
+	Indexation of the bam files
+	@param : bam file
+	@return : bai file
+	*/
+
+	label 'samtools'
+    publishDir 'data/map', mode: 'copy'
+    
+    input:
+    	path BAM
+
+    output:
+    	path "*.bai"
+
+    script:  
+		"""
+		samtools index ${BAM}
+		"""
+}
+
+process counting {
+	/*
+	Counting Reads 
+	@param : all the bam files and the genome annotated
+	@return : a txt file with all the information about the counting
+	*/
+
+	label 'featureCounts'
+	publishDir 'data/counting', mode: 'copy'
+
+	input:
+		val alignedGene
+		path annotedGenome
+
+	output:
+		path "countingReads.txt"
+
+	script:
+	"""
+		featureCounts -T 4 -t gene -g gene_id -s 0 -a ${annotedGenome} -o countingReads.txt ${alignedGene}
+	"""
+}
+
+
 log.info """\
 
  H A C K A T H O N  P I P E L I N E
@@ -146,6 +194,7 @@ log.info """\
     downloadAnnotation : ${params.downloadAnnotation}
     createGenome       : ${params.createGenome}
     mapping            : ${params.mapping}
+    countingReads      : ${params.countingReads}
 
  """
 
@@ -169,8 +218,6 @@ workflow {
     }else{
         pathG = Channel.fromPath('data/genome/referenceGenome.fa', checkIfExists : true, followLinks: false)  
     }
-
-    pathG.view()
     
     if (params.downloadAnnotation == true){
         pathA = genomeAnnotations()
@@ -180,18 +227,31 @@ workflow {
     
     //Create gemome dir
     if (params.createGenome == true){
-        pathGenomeDir = genomeIndex(pathG, pathA)
+        pathGenomeDir = genomeIndex(pathG, pathA).collect()
     }else{
-        pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false)
+        pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false).collect()
     }
     
 
     //Mapping 
     if (params.mapping == true){
-    	fastq.view()
-    	pathGenomeDir.view()
         bam = mappingFastQ(fastq, pathGenomeDir)
-    //}else{
-        //channel pour trouver les fichiers si deja telecharges
+    }else{
+        bam =  Channel.fromPath('data/map/*bam', checkIfExists : true, followLinks: false)
     }
+    
+    //Index Bam
+    if (params.indexBam == true){
+        bai = indexBam(bam)
+    }else{
+        bai =  Channel.fromPath('data/map/*bai', checkIfExists : true, followLinks: false)
+    }
+    
+    //Counting Reads
+    if (params.countingReads == true){
+    	bam.tolist().join(' ').view()
+        //count = counting(bam.tolist().join(' '),pathA)
+    //}else{
+    	//count = 
+    } 
 }

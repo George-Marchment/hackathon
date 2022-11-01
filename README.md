@@ -3,7 +3,7 @@ Projet de Hackathon du master AMI2B 2022
 
 # Install
 
-Run these commands to install git, singularity and nextflow onto the VM
+Run these commands to install git, singularity and nextflow into the VM
 
 ```
 sudo apt install -y git-all

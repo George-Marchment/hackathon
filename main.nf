@@ -160,6 +160,23 @@ process indexBam {
 		"""
 }
 
+process listToStr {
+
+	
+	input:
+		val list
+	
+	output:
+		stdout
+	
+	script:
+		def a = list.join(' ')
+		"""
+		echo '$a'
+		"""
+}
+
+
 process counting {
 	/*
 	Counting Reads 
@@ -179,7 +196,7 @@ process counting {
 
 	script:
 	"""
-		featureCounts -T 4 -t gene -g gene_id -s 0 -a ${annotedGenome} -o countingReads.txt ${alignedGene}
+		featureCounts -p -T 4 -t gene -g gene_id -s 0 -a ${annotedGenome} -o countingReads.txt ${alignedGene}
 	"""
 }
 
@@ -194,6 +211,7 @@ log.info """\
     downloadAnnotation : ${params.downloadAnnotation}
     createGenome       : ${params.createGenome}
     mapping            : ${params.mapping}
+    indexBam           : ${params.indexBam}
     countingReads      : ${params.countingReads}
 
  """
@@ -249,9 +267,8 @@ workflow {
     
     //Counting Reads
     if (params.countingReads == true){
-    	bam.tolist().join(' ').view()
-        //count = counting(bam.tolist().join(' '),pathA)
+        count = counting(listToStr(bam.toList()),pathA)
     //}else{
-    	//count = 
+    	//count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
     } 
 }

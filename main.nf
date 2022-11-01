@@ -118,11 +118,7 @@ process mappingFastQ {
 
     input:
         tuple val(sample), path(fastq1), path(fastq2)
-<<<<<<< HEAD
         path GenomeDir
-=======
-        each GenomeDir
->>>>>>> 91e6666fbbcbdfd0efb0f7071c75c8b5ba8d2d8d
 
     output: 
         file "*.bam"
@@ -140,7 +136,6 @@ process mappingFastQ {
         """
 }
 
-<<<<<<< HEAD
 
 process indexBam {
 
@@ -183,8 +178,6 @@ process counting {
 }
 
 
-=======
->>>>>>> 91e6666fbbcbdfd0efb0f7071c75c8b5ba8d2d8d
 log.info """\
 
  H A C K A T H O N  P I P E L I N E
@@ -195,10 +188,7 @@ log.info """\
     downloadAnnotation : ${params.downloadAnnotation}
     createGenome       : ${params.createGenome}
     mapping            : ${params.mapping}
-<<<<<<< HEAD
     countingReads      : ${params.countingReads}
-=======
->>>>>>> 91e6666fbbcbdfd0efb0f7071c75c8b5ba8d2d8d
 
  """
 
@@ -233,21 +223,14 @@ workflow {
     
     //Create gemome dir
     if (params.createGenome == true){
-<<<<<<< HEAD
         pathGenomeDir = genomeIndex(pathG, pathA).collect()
     }else{
         pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false).collect()
-=======
-        pathGenomeDir = genomeIndex(pathG, pathA)
-    }else{
-        pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false)
->>>>>>> 91e6666fbbcbdfd0efb0f7071c75c8b5ba8d2d8d
     }
     
 
     //Mapping 
     if (params.mapping == true){
-<<<<<<< HEAD
     	//fastq.view()
     	//pathGenomeDir.view()
         bam = mappingFastQ(fastq, pathGenomeDir)
@@ -270,13 +253,3 @@ workflow {
 
     } */
 }
-
-=======
-    	fastq.view()
-    	pathGenomeDir.view()
-        bam = mappingFastQ(fastq, pathGenomeDir)
-    //}else{
-        //channel pour trouver les fichiers si deja telecharges
-    }
-}
->>>>>>> 91e6666fbbcbdfd0efb0f7071c75c8b5ba8d2d8d

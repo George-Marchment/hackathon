@@ -69,6 +69,7 @@ process genomeAnnotations {
     */
 
     label 'genomeAnnotations'
+    publishDir 'data/annotation', mode: 'copy'
 
     output:
         path "*.gtf"
@@ -88,6 +89,7 @@ process genomeIndex {
     @return : the genome repository
     */
     label 'STAR'
+    publishDir 'data/index', mode: 'copy'
 
     input:
         path fasta
@@ -166,20 +168,20 @@ workflow {
     }else{
         pathG = Channel.fromPath('data/genome/referenceGenome.fa', checkIfExists : true, followLinks: false)  
     }
+
+    pathG.view()
     
     if (params.downloadAnnotation == true){
-        genomeAnnotations()
-        pathA = genomeAnnotations.out
+        pathA = genomeAnnotations()
     }else{
-        pathA = Channel.fromPath('work/**/annotedGenome.gtf', checkIfExists : true, followLinks: false)
+        pathA = Channel.fromPath('data/annotation/annotedGenome.gtf', checkIfExists : true, followLinks: false)
     }
     
     //Create gemome dir
     if (params.createGenome == true){
-        genomeIndex(pathG, pathA)
-        pathGenomeDir = genomeIndex.out
+        pathGenomeDir = genomeIndex(pathG, pathA)
     }else{
-        pathGenomeDir = Channel.fromPath('work/**/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false)
+        pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false)
     }
     
 

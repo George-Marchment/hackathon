@@ -28,7 +28,7 @@ process downloadGenome {
 
     label 'downloadGenome'
 
-    publishDir 'results/genome'
+    publishDir 'data/genome'
 
     input : 
         val CHR
@@ -48,7 +48,7 @@ process concatenateGenome {
 
     label 'concatenateGenome'
 
-    publishDir 'results/genome'
+    publishDir 'data/genome'
 
     input :
         path(genome)
@@ -150,14 +150,14 @@ workflow {
     //Il faudra mettre des options pour l'utilisateur pour télécharger les données (qu'il faudra placer à des endroits précis)
     //Sinon juste pour l'analyse -> une option analyse qui ne télécharge pas les données (pour éviter de le faire tout le temps)
 
-    //il faudrait mettre en param : le nb de coeurs et autres parametres generaux
+    //il faudrait mettre en param : le nb de coeurs et autres parametres generaux -> (George) je ne suis pas sûr qu'il ya besoin comme on fait tourné en local sur le VM
 
     
     //Download Fastq files
     if (params.downloadFastq == true){
         fastq = downloadFastqFiles(Channel.from(params.SRAID))
     }else{
-        fastq = Channel.fromFilePairs('work/**/SRR*_{1,2}.fastq', checkIfExists : true, flat: true, followLinks: false)
+        fastq = Channel.fromFilePairs('data/seqs/SRR*_{1,2}.fastq', checkIfExists : true, flat: true, followLinks: false)
     }
     
     //Download genome and annotation
@@ -165,7 +165,7 @@ workflow {
         concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
         pathG = concatenateGenome.out
     }else{
-        pathG = Channel.fromPath('work/**/referenceGenome.fa', checkIfExists : true, followLinks: false)  
+        pathG = Channel.fromPath('data/genome/referenceGenome.fa', checkIfExists : true, followLinks: false)  
     }
     
     if (params.downloadAnnotation == true){

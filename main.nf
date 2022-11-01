@@ -28,7 +28,7 @@ process downloadGenome {
 
     label 'downloadGenome'
 
-    publishDir 'data/genome'
+    publishDir 'data/genome', mode: 'copy'
 
     input : 
         val CHR
@@ -48,7 +48,7 @@ process concatenateGenome {
 
     label 'concatenateGenome'
 
-    publishDir 'data/genome'
+    publishDir 'data/genome', mode: 'copy'
 
     input :
         path(genome)
@@ -162,8 +162,7 @@ workflow {
     
     //Download genome and annotation
     if (params.downloadGenome == true){
-        concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
-        pathG = concatenateGenome.out
+        pathG = concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
     }else{
         pathG = Channel.fromPath('data/genome/referenceGenome.fa', checkIfExists : true, followLinks: false)  
     }

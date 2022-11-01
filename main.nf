@@ -100,7 +100,7 @@ process genomeIndex {
 
     script:
         """
-        STAR --runMode genomeGenerate --runThreadN 4 \
+        STAR --runMode genomeGenerate --runThreadN 16 \
         --genomeSAindexNbases 12 \
         --genomeFastaFiles ${fasta} \
         --sjdbGTFfile ${genomeAnnot}
@@ -114,10 +114,11 @@ process mappingFastQ {
     @return : file bam aligned
     */
     label 'STAR'
+    publishDir 'data/map', mode: 'copy'
 
     input:
         tuple val(sample), path(fastq1), path(fastq2)
-        path GenomeDir
+        each GenomeDir
 
     output: 
         file "*.bam"
@@ -128,7 +129,7 @@ process mappingFastQ {
             --outFilterMultimapNmax 10 \
             --genomeDir ${GenomeDir} \
             --readFilesIn ${fastq1} ${fastq2} \
-            --runThreadN 4 \
+            --runThreadN 16 \
             --outSAMtype BAM SortedByCoordinate \
             --outStd BAM_SortedByCoordinate \
             > ${sample}.bam
@@ -187,6 +188,8 @@ workflow {
 
     //Mapping 
     if (params.mapping == true){
+    	fastq.view()
+    	pathGenomeDir.view()
         bam = mappingFastQ(fastq, pathGenomeDir)
     //}else{
         //channel pour trouver les fichiers si deja telecharges

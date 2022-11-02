@@ -107,28 +107,63 @@ process genomeIndex {
         """
 }
 
+process qualityControl {
+    label 'fastqc'
+
+    publishDir "results/qualityGraph", mode: 'copy'
+
+    input:
+    tuple val(SRAID), path(R1), path(R2)
+
+    output:
+    path "*.html"
+
+    script:
+    """
+    fastqc ${R1} ${R2}
+    """
+}
+
+process trimming {
+    label 'trimmomatic'
+
+    publishDir 'data/trimmomatic/', mode: 'copy'
+
+    input:
+    tuple val(SRAID), path(R1), path(R2)
+
+    output:
+    tuple val(SRAID), path("*P.fastq")
+
+    script:
+    """
+    trimmomatic PE ${R1} ${R2} -baseout \
+    ${SRAID}.fastq  LEADING:20 TRAILING:20 MINLEN:50
+    """
+}
+
 process mappingFastQ {
     /*
-    Maaping the read with STAR
-    @param : the reads R1 and R2 and the gemome dir
+    Mapping the read with STAR
+    @param : the reads R1 and R2 and the genome dir
     @return : file bam aligned
     */
     label 'STAR'
     publishDir 'data/map', mode: 'copy'
 
     input:
-        tuple val(sample), path(fastq1), path(fastq2)
+        tuple val(sample), path(reads)
         path GenomeDir
 
     output: 
-        file "*.bam"
+        path "*.bam"
 
     script:
         """
         STAR --outFilterMismatchNmax 4 \
             --outFilterMultimapNmax 10 \
             --genomeDir ${GenomeDir} \
-            --readFilesIn ${fastq1} ${fastq2} \
+            --readFilesIn ${reads} \
             --runThreadN 16 \
             --outSAMtype BAM SortedByCoordinate \
             --outStd BAM_SortedByCoordinate \
@@ -160,6 +195,7 @@ process indexBam {
 		"""
 }
 
+
 process listToStr {
 
 	
@@ -188,7 +224,7 @@ process counting {
 	publishDir 'data/counting', mode: 'copy'
 
 	input:
-		val alignedGene
+		path alignedGene
 		path annotedGenome
 
 	output:
@@ -210,6 +246,8 @@ log.info """\
     downloadGenome     : ${params.downloadGenome}
     downloadAnnotation : ${params.downloadAnnotation}
     createGenome       : ${params.createGenome}
+    quality            : ${params.quality}
+    trimmomatic        : ${params.trimmomatic}
     mapping            : ${params.mapping}
     indexBam           : ${params.indexBam}
     countingReads      : ${params.countingReads}
@@ -243,17 +281,30 @@ workflow {
         pathA = Channel.fromPath('data/annotation/annotedGenome.gtf', checkIfExists : true, followLinks: false)
     }
     
-    //Create gemome dir
+    //Create genome dir
     if (params.createGenome == true){
         pathGenomeDir = genomeIndex(pathG, pathA).collect()
     }else{
         pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false).collect()
     }
-    
+
+    //Quality Control
+    if (params.quality == true){
+        qualityControl(fastq)
+    }else{
+        //Channel.fromPath('results/qualityGraph/', checkIfExists : true, followLinks: false)
+    }
+
+    //Trimmomatic
+    if (params.trimmomatic == true){
+        trimFastq = trimming(fastq)
+    }else{
+        trimFastq =  Channel.fromPath('data/trimmomatic/*fastq', checkIfExists : true, followLinks: false)
+    }
 
     //Mapping 
     if (params.mapping == true){
-        bam = mappingFastQ(fastq, pathGenomeDir)
+        bam = mappingFastQ(trimFastq, pathGenomeDir)
     }else{
         bam =  Channel.fromPath('data/map/*bam', checkIfExists : true, followLinks: false)
     }
@@ -267,7 +318,7 @@ workflow {
     
     //Counting Reads
     if (params.countingReads == true){
-        count = counting(listToStr(bam.toList()),pathA)
+        count = counting(bam.toList(),pathA)
     //}else{
     	//count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
     } 

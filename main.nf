@@ -27,7 +27,6 @@ process downloadGenome {
     */
 
     label 'downloadGenome'
-
     publishDir 'data/genome', mode: 'copy'
 
     input : 
@@ -45,6 +44,11 @@ process downloadGenome {
 }
 
 process concatenateGenome {
+    /*
+    Take in input all the genome for each chromosome and concatenate it into one file
+    @param : all the chr genome 
+    @return : the 'global' genome
+    */
 
     label 'concatenateGenome'
 
@@ -57,9 +61,9 @@ process concatenateGenome {
         path "*.fa"
 
     script :
-    """
-    cat ${genome} > referenceGenome.fa
-    """
+        """
+        cat ${genome} > referenceGenome.fa
+        """
 }
 
 process genomeAnnotations {
@@ -88,6 +92,7 @@ process genomeIndex {
     @param : the fasta file (chromosome) and the genome annotation (gft)
     @return : the genome repository
     */
+
     label 'STAR'
     publishDir 'data/index', mode: 'copy'
 
@@ -108,38 +113,48 @@ process genomeIndex {
 }
 
 process qualityControl {
-    label 'fastqc'
+    /*
+    Verify the reads quality
+    @param : the reads (name of the sample - R1 - R2)
+    @return : the html file of the quality control
+    */
 
-    publishDir "results/qualityGraph", mode: 'copy'
+    label 'fastqc'
+    publishDir "data/results/qualityGraph", mode: 'copy'
 
     input:
-    tuple val(SRAID), path(R1), path(R2)
+        tuple val(SRAID), path(R1), path(R2)
 
     output:
-    path "*.html"
+        path "*.html"
 
     script:
-    """
-    fastqc ${R1} ${R2}
-    """
+        """
+        fastqc ${R1} ${R2}
+        """
 }
 
 process trimming {
-    label 'trimmomatic'
+    /*
+    Remove the adaptators
+    @param : the reads (name of the sample - R1 - R2)
+    @return : the reads trimmed 
+    */
 
+    label 'trimmomatic'
     publishDir 'data/trimmomatic/', mode: 'copy'
 
     input:
-    tuple val(SRAID), path(R1), path(R2)
+        tuple val(SRAID), path(R1), path(R2)
 
     output:
-    tuple val(SRAID), path("*P.fastq")
+        tuple val(SRAID), path("*P.fastq")
 
     script:
-    """
-    trimmomatic PE ${R1} ${R2} -baseout \
-    ${SRAID}.fastq  LEADING:20 TRAILING:20 MINLEN:50
-    """
+        """
+        trimmomatic PE ${R1} ${R2} -baseout \
+        ${SRAID}.fastq  LEADING:20 TRAILING:20 MINLEN:50
+        """
 }
 
 process mappingFastQ {
@@ -197,8 +212,12 @@ process indexBam {
 
 
 process listToStr {
+    /*
+    Change a list into a string : [a, b, c] become a b c
+    @param : a list
+    @return : a string
+    */
 
-	
 	input:
 		val list
 	
@@ -221,7 +240,7 @@ process counting {
 	*/
 
 	label 'featureCounts'
-	publishDir 'data/counting', mode: 'copy'
+	publishDir 'data/results/counting', mode: 'copy'
 
 	input:
 		path alignedGene
@@ -231,9 +250,9 @@ process counting {
 		path "countingReads.txt"
 
 	script:
-	"""
-		featureCounts -p -T 4 -t gene -g gene_id -s 0 -a ${annotedGenome} -o countingReads.txt ${alignedGene}
-	"""
+        """
+        featureCounts -p -T 4 -t gene -g gene_id -s 0 -a ${annotedGenome} -o countingReads.txt ${alignedGene}
+        """
 }
 
 
@@ -319,7 +338,7 @@ workflow {
     //Counting Reads
     if (params.countingReads == true){
         count = counting(bam.toList(),pathA)
-    //}else{
-    	//count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
+    }else{
+    	count = Channel.fromPath('data/results/counting/countingReads.txt', checkIfExists : true, followLinks: false)
     } 
 }

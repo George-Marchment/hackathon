@@ -244,8 +244,9 @@ log.info """\
     downloadGenome     : ${params.downloadGenome}
     downloadAnnotation : ${params.downloadAnnotation}
     createGenome       : ${params.createGenome}
-    quality            : ${params.quality}
-    trimmomatic        : ${params.trimmomatic}
+    doQuality          : ${params.doQuality}
+    doTrimmomatic      : ${params.doTrimmomatic}
+    getTrimmomatic     : ${params.getTrimmomatic}
     mapping            : ${params.mapping}
     indexBam           : ${params.indexBam}
     countingReads      : ${params.countingReads}
@@ -253,7 +254,6 @@ log.info """\
  """
 
 workflow {
-    //Il faudra mettre des options pour l'utilisateur pour télécharger les données (qu'il faudra placer à des endroits précis)
     //Sinon juste pour l'analyse -> une option analyse qui ne télécharge pas les données (pour éviter de le faire tout le temps)
 
     //il faudrait mettre en param : le nb de coeurs et autres parametres generaux -> (George) je ne suis pas sûr qu'il ya besoin comme on fait tourné en local sur le VM
@@ -263,61 +263,63 @@ workflow {
     if (params.downloadFastq == true){
         fastq = downloadFastqFiles(Channel.from(params.SRAID))
     }else{
-        fastq = Channel.fromFilePairs('data/seqs/SRR*_{1,2}.fastq', checkIfExists : true, flat: true, followLinks: false)
+        fastq = Channel.fromFilePairs(params.files, checkIfExists : true, flat: true, followLinks: false)
     }
     
     //Download genome and annotation
     if (params.downloadGenome == true){
         pathG = concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
     }else{
-        pathG = Channel.fromPath('data/genome/referenceGenome.fa', checkIfExists : true, followLinks: false)  
+        pathG = Channel.fromPath(params.referenceGenome, checkIfExists : true, followLinks: false)  
     }
     
     if (params.downloadAnnotation == true){
         pathA = genomeAnnotations()
     }else{
-        pathA = Channel.fromPath('data/annotation/annotedGenome.gtf', checkIfExists : true, followLinks: false)
+        pathA = Channel.fromPath(params.annotatedGenome, checkIfExists : true, followLinks: false)
     }
     
     //Create genome dir
     if (params.createGenome == true){
         pathGenomeDir = genomeIndex(pathG, pathA).collect()
     }else{
-        pathGenomeDir = Channel.fromPath('data/index/GenomeDir/', checkIfExists : true, type: 'dir', followLinks: false).collect()
+        pathGenomeDir = Channel.fromPath(params.GenomeDir, checkIfExists : true, type: 'dir', followLinks: false).collect()
     }
 
     //Quality Control
-    if (params.quality == true){
+    if (params.doQuality == true){
         qualityControl(fastq)
-    }else{
-        //Channel.fromPath('results/qualityGraph/', checkIfExists : true, followLinks: false)
     }
 
     //Trimmomatic
-    if (params.trimmomatic == true){
-        fastq = trimming(fastq)
+    if (params.doTrimmomatic == true){
+        if (params.getTrimmomatic == true){
+            new_fastq = trimming(fastq)
+        }else{
+            new_fastq = Channel.fromFilePairs(params.trimmoFiles, checkIfExists : true, flat: true, followLinks: false)
+        }   
     }else{
-        //fastq =  Channel.fromPath('data/trimmomatic/*fastq', checkIfExists : true, followLinks: false)
+        new_fastq = fastq
     }
 
     //Mapping 
     if (params.mapping == true){
-        bam = mappingFastQ(fastq, pathGenomeDir)
+        bam = mappingFastQ(new_fastq, pathGenomeDir)
     }else{
-        bam =  Channel.fromPath('data/map/*bam', checkIfExists : true, followLinks: false)
+        bam =  Channel.fromPath(params.mappingFiles, checkIfExists : true, followLinks: false)
     }
     
     //Index Bam
     if (params.indexBam == true){
         bai = indexBam(bam)
     }else{
-        bai =  Channel.fromPath('data/map/*bai', checkIfExists : true, followLinks: false)
+        bai =  Channel.fromPath(params.baiFiles, checkIfExists : true, followLinks: false)
     }
     
     //Counting Reads
     if (params.countingReads == true){
         count = counting(bam.toList(),pathA)
     }else{
-    	count = Channel.fromPath('data/results/counting/countingReads.txt', checkIfExists : true, followLinks: false)
+    	count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
     } 
 }

@@ -12,11 +12,12 @@ process downloadFastqFiles {
         val SRAID
 
     output:
-        tuple val(SRAID), path ("*1.fastq"), path ("*2.fastq")  
+        tuple val(SRAID), path ("*1.fastq.gz"), path ("*2.fastq.gz")  
 
     script:
         """
         fasterq-dump ${SRAID}
+	gzip ${SRAID}*.fastq
         """
 }
 
@@ -120,7 +121,7 @@ process qualityControl {
     */
 
     label 'fastqc'
-    publishDir "data/results/qualityGraph", mode: 'copy'
+    publishDir "data/qualityGraph", mode: 'copy'
 
     input:
         tuple val(SRAID), path(R1), path(R2)
@@ -148,7 +149,7 @@ process trimming {
         tuple val(SRAID), path(R1), path(R2)
 
     output:
-        tuple val(SRAID), path("*P.fastq")
+        tuple val(SRAID), path("*1P.fastq"), path("*2P.fastq")
 
     script:
         """
@@ -167,7 +168,7 @@ process mappingFastQ {
     publishDir 'data/map', mode: 'copy'
 
     input:
-        tuple val(sample), path(reads)
+        tuple val(sample), path(R1), path(R2)
         path GenomeDir
 
     output: 
@@ -178,7 +179,7 @@ process mappingFastQ {
         STAR --outFilterMismatchNmax 4 \
             --outFilterMultimapNmax 10 \
             --genomeDir ${GenomeDir} \
-            --readFilesIn ${reads} \
+            --readFilesIn ${R1} ${R2} \
             --runThreadN 16 \
             --outSAMtype BAM SortedByCoordinate \
             --outStd BAM_SortedByCoordinate \
@@ -210,28 +211,6 @@ process indexBam {
 		"""
 }
 
-
-process listToStr {
-    /*
-    Change a list into a string : [a, b, c] become a b c
-    @param : a list
-    @return : a string
-    */
-
-	input:
-		val list
-	
-	output:
-		stdout
-	
-	script:
-		def a = list.join(' ')
-		"""
-		echo '$a'
-		"""
-}
-
-
 process counting {
 	/*
 	Counting Reads 
@@ -240,7 +219,7 @@ process counting {
 	*/
 
 	label 'featureCounts'
-	publishDir 'data/results/counting', mode: 'copy'
+	publishDir 'data/counting', mode: 'copy'
 
 	input:
 		path alignedGene
@@ -316,14 +295,14 @@ workflow {
 
     //Trimmomatic
     if (params.trimmomatic == true){
-        trimFastq = trimming(fastq)
+        fastq = trimming(fastq)
     }else{
-        trimFastq =  Channel.fromPath('data/trimmomatic/*fastq', checkIfExists : true, followLinks: false)
+        //fastq =  Channel.fromPath('data/trimmomatic/*fastq', checkIfExists : true, followLinks: false)
     }
 
     //Mapping 
     if (params.mapping == true){
-        bam = mappingFastQ(trimFastq, pathGenomeDir)
+        bam = mappingFastQ(fastq, pathGenomeDir)
     }else{
         bam =  Channel.fromPath('data/map/*bam', checkIfExists : true, followLinks: false)
     }

@@ -1,5 +1,5 @@
 # hackathon
-Projet de Hackathon du master AMI2B 2022
+Projet de Hackathon du master AMI2B 2022.
 
 # Install
 

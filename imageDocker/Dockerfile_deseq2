@@ -10,7 +10,7 @@ RUN apt-get update --fix-missing -qq \
 && add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" \
 && apt-get install -y --no-install-recommends r-base \
 
-&& R -e "install.packages('BiocManager')" \
+&& R -e "install.packages('BiocManager', version='1.30.19')" \
 && R -e "BiocManager::install('DESeq2')" \
 
 && apt-get remove -y  wget build-essential \

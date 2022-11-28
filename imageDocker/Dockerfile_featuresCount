@@ -1,6 +1,6 @@
 # base image: Ubuntu
 FROM ubuntu:22.04
 RUN apt-get update --fix-missing \
-&& apt-get install -y subread 
+&& apt-get install -y subread=2.0.3+dfsg-1 
 
 ENTRYPOINT ["featureCounts"]

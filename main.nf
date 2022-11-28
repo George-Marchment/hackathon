@@ -234,6 +234,71 @@ process counting {
         """
 }
 
+process analyseDifferentielle {
+    /*
+	Differential analysis
+	@param : the feature count file and the metadata file
+	@return : analysis repository (a txt file with differentially expressed genes, histogram of p-values)
+	*/
+
+	label 'deseq2'
+	publishDir 'data/differentialAnalysis', mode: 'copy'
+
+	input:
+		path countingReads
+		path metadata
+
+	output:
+		path "DEgenes.txt"
+        path "*.png"
+
+	script:
+        """
+        # Chargement des données
+        countData <- read.table(header=TRUE, row.names = 1, ${countingReads})
+        countData <- countData[,6:13]
+        metadata <- metadata <- read.table(header=TRUE, sep="\t", ${metadata})
+
+        cond <- c()
+        for (ind in colnames(countData)){
+            cond = c(cond, metadata[which(metadata8[,1]==ind),2] == "yes")
+        }
+        cond <- factor(cond)
+
+        # Filtrage des gènes
+        countData <- countData[-which(rowSums(countData8) == 0),]
+
+        mutant = metadata[which(metadata[,2]==1),1]
+        nonMutant = metadata[-which(metadata[,2]==1),1]
+
+        for (indMutant in mutant){
+            for (indNonMutant in nonMutant) {
+                countData <- countData[countData[,indMutant]!=0 | countData[,indNonMutant]!=0,]
+            }
+        }
+
+        # Analyse différentielle
+        dds <- DESeqDataSetFromMatrix(countData=countData, colData=DataFrame(cond), design=~cond)
+        dds <- DESeq(dds)
+        res <- results(dds)
+
+        png("histogram.png")
+        hist(res$pvalue, main='Histogram of pvalues')
+        dev.off()
+
+        DEgenes <- res[which(res$padj<0.05),]
+
+        rld <- rlog(dds)
+
+        png("PCA.png")
+        plotPCA(rld, intgroup='mutant') + geom_text(aes(label=name),vjust=2)
+        dev.off()
+
+        write.table(DEgenes, "DEgenes.txt", sep="\t")
+        """
+
+}
+
 
 log.info """\
 
@@ -322,4 +387,7 @@ workflow {
     }else{
     	count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
     } 
+
+    //Differential analysis
+    
 }

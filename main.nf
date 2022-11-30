@@ -327,6 +327,86 @@ workflow {
     res = test_george()
     res.view()
 
-    counting(bam.toList(),pathA)
+
+    /*//Download Fastq files
+    if (params.downloadFastq == true){
+        fastq = downloadFastqFiles(Channel.from(params.SRAID))
+    }else{
+        //If the user doesn't want to download them, check if they exist
+        fastq = Channel.fromFilePairs(params.files, checkIfExists : true, flat: true, followLinks: false)
+    }
+    
+    //Download and concatenate genomes
+    if (params.downloadGenome == true){
+        pathG = concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
+    }else{
+        //If the user doesn't want to download them, check if they exist
+        pathG = Channel.fromPath(params.referenceGenome, checkIfExists : true, followLinks: false)  
+    }
+    
+    //Download genome annotation
+    if (params.downloadAnnotation == true){
+        pathA = genomeAnnotations()
+    }else{
+        //If the user doesn't want to download it, check if it exists
+        pathA = Channel.fromPath(params.annotatedGenome, checkIfExists : true, followLinks: false)
+    }
+    
+    //Create genome dir
+    if (params.createGenome == true){
+        pathGenomeDir = genomeIndex(pathG, pathA).collect()
+    }else{
+        //If the user doesn't want to create it, check if it exists
+        pathGenomeDir = Channel.fromPath(params.GenomeDir, checkIfExists : true, type: 'dir', followLinks: false).collect()
+    }
+
+    //Quality Control
+    if (params.doQuality == true){
+        qualityControl(fastq)
+    }
+
+    //Trimmomatic
+    if (params.doTrimmomatic == true){
+        //In the case the user wants to trim the reads (in the case they are poor quality)
+        if (params.getTrimmomatic == true){
+            //If the user wants to run the process Trimmomatic
+            new_fastq = trimming(fastq)
+        }else{
+            //If not, checks in the files exist
+            new_fastq = Channel.fromFilePairs(params.trimmoFiles, checkIfExists : true, flat: true, followLinks: false)
+        }   
+    }else{
+        //In the case the user doesn't want to trim the reads (in the case they are good quality)
+        new_fastq = fastq
+    }
+
+    //Mapping 
+    if (params.mapping == true){
+        bam = mappingFastQ(new_fastq, pathGenomeDir)
+    }else{
+        //In the case the user doesn't want to run the mapping process -> check that the files exist 
+        bam =  Channel.fromPath(params.mappingFiles, checkIfExists : true, followLinks: false)
+    }
+    
+    //Index Bam
+    if (params.indexBam == true){
+        bai = indexBam(bam)
+    }else{
+        //In the case the user doesn't want to run the indexBam process -> check that the files exist 
+        bai =  Channel.fromPath(params.baiFiles, checkIfExists : true, followLinks: false)
+    }
+    
+    //Counting Reads
+    if (params.countingReads == true){
+        count = counting(bam.toList(),pathA)
+    }else{
+        //In the case the user doesn't want to run the countingReads process -> check that the file exist 
+    	count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
+    } 
+
+    //Differential analysis
+    if (params.differentialAnalysis == true){
+        //diffAnalysis(count, ) //TODO FILL THIS
+    }*/
     
 }

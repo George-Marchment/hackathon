@@ -254,6 +254,18 @@ process counting {
         """
 }
 
+process test {
+
+    output:
+        stdout
+
+    script:
+        """
+        echo ${task.cpus}
+        """
+}
+
+
 process diffAnalysis {
     /*
 	Differential analysis
@@ -306,12 +318,11 @@ Options selected :
     - countingReads        : ${params.countingReads}
     - differentialAnalysis : ${params.differentialAnalysis}
 
-TODO: remove this line: it's just a test -> This should be 16 : ${task.cpus}
-
  """
 
 workflow {
 
+    test().view()
 
     //Download Fastq files
     if (params.downloadFastq == true){

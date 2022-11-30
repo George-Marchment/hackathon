@@ -1,8 +1,26 @@
+/**
+Nextflow workflow performing an RNA-seq Analysis created by :
+    - Ambre Baumann (https://github.com/ambrebaumann)
+    - Lindsay Goulet (https://github.com/Lindsay-Goulet)
+    - George Marchment (https://github.com/George-Marchment)
+    - Clémence Sebe (https://github.com/ClemenceS)
+
+This workflow was created in the context of the 2022 Hackathon project (master M2 AMI2B) 
+This project was surpervised by Frédéric Lemoine & Thomas Cokelaer
+**/
+
+/**
+Notes :
+    - We have chosen to leave the full workflow in one file, for readibility reasons
+    - Structure of workflow (code) : define the list of processes then define the main of the workflow 
+    - 
+**/
+
 process downloadFastqFiles {
     /*
     Download the fastq files with the tool fasterq-dump
-    @param : a list of SRAID
-    @return : all the fastq download
+    Inputs : a list of SRAID
+    Outputs : the fastqs 
     */
 
     publishDir 'data/seqs', mode: 'copy'
@@ -12,19 +30,20 @@ process downloadFastqFiles {
         val SRAID
 
     output:
-        tuple val(SRAID), path ("*1.fastq.gz"), path ("*2.fastq.gz")  
+        tuple val(SRAID), path("*1.fastq.gz"), path ("*2.fastq.gz")  
 
     script:
         """
         fasterq-dump ${SRAID}
-	gzip ${SRAID}*.fastq
+	    gzip ${SRAID}*.fastq
         """
 }
 
 process downloadGenome {
     /*
     Download the genome of a list of chromosomes
-    @return : the file of the chromosome download
+    Inputs : ID chromosome
+    Outputs : the file of the chromosome download
     */
 
     label 'downloadGenome'
@@ -46,9 +65,9 @@ process downloadGenome {
 
 process concatenateGenome {
     /*
-    Take in input all the genome for each chromosome and concatenate it into one file
-    @param : all the chr genome 
-    @return : the 'global' genome
+    Take in input the 'genome' for each chromosome and concatenate it into one file
+    Inputs : The chromosones
+    Outputs : the 'global' genome
     */
 
     label 'concatenateGenome'
@@ -70,7 +89,7 @@ process concatenateGenome {
 process genomeAnnotations {
     /*
     Download the genome Annotation
-    @return : the gtf file with the annotation
+    Outputs : the gtf file with the annotation
     */
 
     label 'genomeAnnotations'
@@ -90,8 +109,8 @@ process genomeAnnotations {
 process genomeIndex {
     /*
     Create the repository with the genome files created 
-    @param : the fasta file (chromosome) and the genome annotation (gft)
-    @return : the genome repository
+    Inputs : the fasta file (genome) and the genome annotation (gft)
+    Outputs : the genome repository
     */
 
     label 'STAR'
@@ -106,7 +125,7 @@ process genomeIndex {
 
     script:
         """
-        STAR --runMode genomeGenerate --runThreadN 16 \
+        STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
         --genomeSAindexNbases 12 \
         --genomeFastaFiles ${fasta} \
         --sjdbGTFfile ${genomeAnnot}
@@ -116,8 +135,8 @@ process genomeIndex {
 process qualityControl {
     /*
     Verify the reads quality
-    @param : the reads (name of the sample - R1 - R2)
-    @return : the html file of the quality control
+    Inputs : the reads (name of the sample - R1 - R2)
+    Outputs : the html file of the quality control
     */
 
     label 'fastqc'
@@ -138,8 +157,8 @@ process qualityControl {
 process trimming {
     /*
     Remove the adaptators
-    @param : the reads (name of the sample - R1 - R2)
-    @return : the reads trimmed 
+    Inputs : the reads (name of the sample - R1 - R2)
+    Outputs : the reads trimmed 
     */
 
     label 'trimmomatic'
@@ -160,10 +179,11 @@ process trimming {
 
 process mappingFastQ {
     /*
-    Mapping the read with STAR
-    @param : the reads R1 and R2 and the genome dir
-    @return : file bam aligned
+    Mapping the read to genome with STAR
+    Inputs : the reads R1 and R2 and the genome dir
+    Outputs : file bam aligned
     */
+
     label 'STAR'
     publishDir 'data/map', mode: 'copy'
 
@@ -176,11 +196,12 @@ process mappingFastQ {
 
     script:
         """
-        STAR --outFilterMismatchNmax 4 \
+        STAR --outSAMstrandField intronMotif \
+            --outFilterMismatchNmax 4 \
             --outFilterMultimapNmax 10 \
             --genomeDir ${GenomeDir} \
             --readFilesIn ${R1} ${R2} \
-            --runThreadN 16 \
+            --runThreadN ${task.cpus} \
             --outSAMtype BAM SortedByCoordinate \
             --outStd BAM_SortedByCoordinate \
             > ${sample}.bam
@@ -189,11 +210,10 @@ process mappingFastQ {
 
 
 process indexBam {
-
 	/*
 	Indexation of the bam files
-	@param : bam file
-	@return : bai file
+	Inputs : bam file
+	Outputs : bai file
 	*/
 
 	label 'samtools'
@@ -214,8 +234,8 @@ process indexBam {
 process counting {
 	/*
 	Counting Reads 
-	@param : all the bam files and the genome annotated
-	@return : a txt file with all the information about the counting
+	Inputs : all the bam files and the genome annotated
+	Outputs : a txt file with all the information about the counting
 	*/
 
 	label 'featureCounts'
@@ -234,11 +254,11 @@ process counting {
         """
 }
 
-process analyseDifferentielle {
+process diffAnalysis {
     /*
 	Differential analysis
-	@param : the feature count file and the metadata file
-	@return : analysis repository (a txt file with differentially expressed genes, histogram of p-values)
+	Inputs : the feature count file and the metadata file
+	Outputs : analysis repository (a txt file with differentially expressed genes, histogram of p-values)
 	*/
 
 	label 'deseq2'
@@ -254,93 +274,66 @@ process analyseDifferentielle {
 
 	script:
         """
-        # Chargement des données
-        countData <- read.table(header=TRUE, row.names = 1, ${countingReads})
-        countData <- countData[,6:13]
-        metadata <- metadata <- read.table(header=TRUE, sep="\t", ${metadata})
-
-        cond <- c()
-        for (ind in colnames(countData)){
-            cond = c(cond, metadata[which(metadata8[,1]==ind),2] == "yes")
-        }
-        cond <- factor(cond)
-
-        # Filtrage des gènes
-        countData <- countData[-which(rowSums(countData8) == 0),]
-
-        mutant = metadata[which(metadata[,2]==1),1]
-        nonMutant = metadata[-which(metadata[,2]==1),1]
-
-        for (indMutant in mutant){
-            for (indNonMutant in nonMutant) {
-                countData <- countData[countData[,indMutant]!=0 | countData[,indNonMutant]!=0,]
-            }
-        }
-
-        # Analyse différentielle
-        dds <- DESeqDataSetFromMatrix(countData=countData, colData=DataFrame(cond), design=~cond)
-        dds <- DESeq(dds)
-        res <- results(dds)
-
-        png("histogram.png")
-        hist(res$pvalue, main='Histogram of pvalues')
-        dev.off()
-
-        DEgenes <- res[which(res$padj<0.05),]
-
-        rld <- rlog(dds)
-
-        png("PCA.png")
-        plotPCA(rld, intgroup='mutant') + geom_text(aes(label=name),vjust=2)
-        dev.off()
-
-        write.table(DEgenes, "DEgenes.txt", sep="\t")
+        Rscript analyse.R
         """
-
 }
 
 
 log.info """\
 
- H A C K A T H O N  P I P E L I N E
+===================================
+ H A C K A T H O N  W O R K F L O W
 ===================================
 
-    downloadFastq      : ${params.downloadFastq}
-    downloadGenome     : ${params.downloadGenome}
-    downloadAnnotation : ${params.downloadAnnotation}
-    createGenome       : ${params.createGenome}
-    doQuality          : ${params.doQuality}
-    doTrimmomatic      : ${params.doTrimmomatic}
-    getTrimmomatic     : ${params.getTrimmomatic}
-    mapping            : ${params.mapping}
-    indexBam           : ${params.indexBam}
-    countingReads      : ${params.countingReads}
+Written by :
+
+    - Ambre Baumann (https://github.com/ambrebaumann)
+    - Lindsay Goulet (https://github.com/Lindsay-Goulet)
+    - George Marchment (https://github.com/George-Marchment)
+    - Clémence Sebe (https://github.com/ClemenceS)
+
+Options selected :
+
+    - downloadFastq        : ${params.downloadFastq}
+    - downloadGenome       : ${params.downloadGenome}
+    - downloadAnnotation   : ${params.downloadAnnotation}
+    - createGenome         : ${params.createGenome}
+    - doQuality            : ${params.doQuality}
+    - doTrimmomatic        : ${params.doTrimmomatic}
+    - getTrimmomatic       : ${params.getTrimmomatic}
+    - mapping              : ${params.mapping}
+    - indexBam             : ${params.indexBam}
+    - countingReads        : ${params.countingReads}
+    - differentialAnalysis : ${params.differentialAnalysis}
+
+TODO: remove this line: it's just a test -> This should be 16 : ${task.cpus}
 
  """
 
 workflow {
-    //Sinon juste pour l'analyse -> une option analyse qui ne télécharge pas les données (pour éviter de le faire tout le temps)
 
-    //il faudrait mettre en param : le nb de coeurs et autres parametres generaux -> (George) je ne suis pas sûr qu'il ya besoin comme on fait tourné en local sur le VM
 
-    
     //Download Fastq files
     if (params.downloadFastq == true){
         fastq = downloadFastqFiles(Channel.from(params.SRAID))
     }else{
+        //If the user doesn't want to download them, check if they exist
         fastq = Channel.fromFilePairs(params.files, checkIfExists : true, flat: true, followLinks: false)
     }
     
-    //Download genome and annotation
+    //Download and concatenate genomes
     if (params.downloadGenome == true){
         pathG = concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
     }else{
+        //If the user doesn't want to download them, check if they exist
         pathG = Channel.fromPath(params.referenceGenome, checkIfExists : true, followLinks: false)  
     }
     
+    //Download genome annotation
     if (params.downloadAnnotation == true){
         pathA = genomeAnnotations()
     }else{
+        //If the user doesn't want to download it, check if it exists
         pathA = Channel.fromPath(params.annotatedGenome, checkIfExists : true, followLinks: false)
     }
     
@@ -348,6 +341,7 @@ workflow {
     if (params.createGenome == true){
         pathGenomeDir = genomeIndex(pathG, pathA).collect()
     }else{
+        //If the user doesn't want to create it, check if it exists
         pathGenomeDir = Channel.fromPath(params.GenomeDir, checkIfExists : true, type: 'dir', followLinks: false).collect()
     }
 
@@ -358,12 +352,16 @@ workflow {
 
     //Trimmomatic
     if (params.doTrimmomatic == true){
+        //In the case the user wants to trim the reads (in the case they are poor quality)
         if (params.getTrimmomatic == true){
+            //If the user wants to run the process Trimmomatic
             new_fastq = trimming(fastq)
         }else{
+            //If not, checks in the files exist
             new_fastq = Channel.fromFilePairs(params.trimmoFiles, checkIfExists : true, flat: true, followLinks: false)
         }   
     }else{
+        //In the case the user doesn't want to trim the reads (in the case they are good quality)
         new_fastq = fastq
     }
 
@@ -371,6 +369,7 @@ workflow {
     if (params.mapping == true){
         bam = mappingFastQ(new_fastq, pathGenomeDir)
     }else{
+        //In the case the user doesn't want to run the mapping process -> check that the files exist 
         bam =  Channel.fromPath(params.mappingFiles, checkIfExists : true, followLinks: false)
     }
     
@@ -378,6 +377,7 @@ workflow {
     if (params.indexBam == true){
         bai = indexBam(bam)
     }else{
+        //In the case the user doesn't want to run the indexBam process -> check that the files exist 
         bai =  Channel.fromPath(params.baiFiles, checkIfExists : true, followLinks: false)
     }
     
@@ -385,9 +385,13 @@ workflow {
     if (params.countingReads == true){
         count = counting(bam.toList(),pathA)
     }else{
+        //In the case the user doesn't want to run the countingReads process -> check that the file exist 
     	count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
     } 
 
     //Differential analysis
+    if (params.differentialAnalysis == true){
+        //diffAnalysis(count, ) //TODO FILL THIS
+    }
     
 }

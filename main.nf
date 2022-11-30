@@ -1,5 +1,5 @@
 /**
-Nextflow workflow performing an RNA-seq Analysis created by :
+Nextflow workflow performing an ARN-seq Analysis created by :
     - Ambre Baumann (https://github.com/ambrebaumann)
     - Lindsay Goulet (https://github.com/Lindsay-Goulet)
     - George Marchment (https://github.com/George-Marchment)

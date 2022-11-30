@@ -278,10 +278,10 @@ process diffAnalysis {
         touch DEgenes.txt
         touch image.png
         """
-	/*script:
+	script:
         """
         Rscript Rscript/analyse.R
-        """*/
+        """
     
 }
 

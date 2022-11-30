@@ -273,10 +273,16 @@ process diffAnalysis {
 		path "DEgenes.txt"
         path "*.png"
 
-	script:
+    script:
         """
-        Rscript analyse.R
+        touch DEgenes.txt
+        touch image.png
         """
+	/*script:
+        """
+        Rscript Rscript/analyse.R
+        """*/
+    
 }
 
 
@@ -390,7 +396,7 @@ workflow {
 
     //Differential analysis
     if (params.differentialAnalysis == true){
-        //diffAnalysis(count, ) //TODO FILL THIS
+        diffAnalysis(count, Channel.fromPath('Rscript/metadata.txt', checkIfExists : true, followLinks: false))
     }
     
 }

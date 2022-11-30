@@ -323,7 +323,8 @@ Options selected :
 
 workflow {
 
-    test().view()
+    res = test()
+    res.view()
 
     /*//Download Fastq files
     if (params.downloadFastq == true){

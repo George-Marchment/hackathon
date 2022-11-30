@@ -254,18 +254,6 @@ process counting {
         """
 }
 
-process test_george {
-
-    
-    output:
-        stdout
-
-    script:
-        """
-        echo '${task.cpus}'
-        """
-}
-
 
 process diffAnalysis {
     /*
@@ -323,11 +311,8 @@ Options selected :
 
 workflow {
 
-    res = test_george()
-    res.view()
 
-
-    /*//Download Fastq files
+    //Download Fastq files
     if (params.downloadFastq == true){
         fastq = downloadFastqFiles(Channel.from(params.SRAID))
     }else{
@@ -406,6 +391,6 @@ workflow {
     //Differential analysis
     if (params.differentialAnalysis == true){
         //diffAnalysis(count, ) //TODO FILL THIS
-    }*/
+    }
     
 }

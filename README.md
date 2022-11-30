@@ -1,4 +1,6 @@
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Version 1.0.1](https://img.shields.io/badge/version-v1.0.0-blue)]()
+[![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Version 1.0.1](https://img.shields.io/badge/version-v1.0-yellow)]()
+[![Reproducibility](https://img.shields.io/badge/Crucial-Reproducibility-orange)]()
+
 
 # 2022 Hackathon Project 
 

@@ -273,11 +273,7 @@ process diffAnalysis {
 		path "*.txt"
         path "*.pdf"
 
-    script:
-        """
-        touch DEgenes.txt
-        touch image.png
-        """
+
 	script:
         """
         Rscript Rscript/analyse.R

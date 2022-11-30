@@ -1,5 +1,4 @@
-[![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Version 1.0.1](https://img.shields.io/badge/version-v1.0-yellow)]()
-[![Reproducibility](https://img.shields.io/badge/Crucial-Reproducibility-orange)]()
+[![MIT licensed](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Version 1.0.1](https://img.shields.io/badge/version-v1.0-yellow)]() [![Reproducibility](https://img.shields.io/badge/Crucial-Reproducibility-orange)]()
 
 
 # 2022 Hackathon Project 
@@ -52,15 +51,15 @@ conda activate
 nextflow main.nf
 ```
 
-When running the workflow, the user can specify which processes they want to be executed (by default they are all True in the *nextflow.config*).
+When running the workflow, the user can specify which processes they want to be executed (by default they are all set to True in the *nextflow.config*).
 
-Imagine the case, they don't want to run the *downloadFastqFiles* process to download the reads, but want to use the ones have been already downloaed (on a previous run), they would simply have run the following command :
+Imagine the case, the user does not want to run the *downloadFastqFiles* process (to download the reads), but wants to use the ones which have already been downloaded (on a previous run), they would simply have to run the following command :
  
 ```
 nextflow main.nf --downloadFastqFiles False
 ```
 
-> Note :  The reads which are used in this case are the ones found in data/seqs/ and following the pattern SRR*_{1,2}.fastq. If the user wants to use different fastq, they would have to change the *files* parameter in the same way.
+> Note :  The reads which are used in this case are the ones found in data/seqs/ and following the pattern SRR*_{1,2}.fastq. If the user wants to use different fastqs, they would have to change the *files* parameter in the same way.
 
 ___
 

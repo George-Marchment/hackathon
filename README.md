@@ -2,9 +2,7 @@
 
 # 2022 Hackathon Project 
 
-**Master M2 AMI2B**
-
-<img style="float: right;" src="pictures/paris-saclay.png">
+**Master M2 AMI2B - Universite Paris Saclay**
 
 Contributors :
 
@@ -62,5 +60,7 @@ nextflow main.nf --downloadFastqFiles False
 
 > Note :  The reads which are used in this case are the ones found in data/seqs/ and following the pattern SRR*_{1,2}.fastq. If the user wants to use different fastq, they would have to change the *files* parameter in the same way.
 
+___
 
+<img src="pictures/paris-saclay.png">
 

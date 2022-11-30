@@ -263,7 +263,7 @@ process test_george {
 
     script:
         """
-        echo ${task.cpus} > test.txt
+        echo 'george' > test.txt
         """
 }
 

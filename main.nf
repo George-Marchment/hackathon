@@ -324,7 +324,7 @@ workflow {
 
     test().view()
 
-    //Download Fastq files
+    /*//Download Fastq files
     if (params.downloadFastq == true){
         fastq = downloadFastqFiles(Channel.from(params.SRAID))
     }else{
@@ -403,6 +403,6 @@ workflow {
     //Differential analysis
     if (params.differentialAnalysis == true){
         //diffAnalysis(count, ) //TODO FILL THIS
-    }
+    }*/
     
 }

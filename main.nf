@@ -266,12 +266,12 @@ process diffAnalysis {
 	publishDir 'data/differentialAnalysis', mode: 'copy'
 
 	input:
-		path countingReads
+	    path countingReads
 		path metadata
 
 	output:
-		path "DEgenes.txt"
-        path "*.png"
+		path "*.txt"
+        path "*.pdf"
 
     script:
         """

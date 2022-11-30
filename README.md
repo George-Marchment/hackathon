@@ -2,7 +2,7 @@
 
 # 2022 Hackathon Project 
 
-**2022 Hackathon Project (Master M2 AMI2B)**
+**Master M2 AMI2B**
 
 Contributors :
 

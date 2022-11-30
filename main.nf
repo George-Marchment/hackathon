@@ -254,9 +254,10 @@ process counting {
         """
 }
 
-process test {
+process test_george {
 
     publishDir 'George/', mode: 'copy'
+    
     output:
         stdout
 
@@ -323,7 +324,7 @@ Options selected :
 
 workflow {
 
-    res = test()
+    res = test_george()
     res.view()
 
     /*//Download Fastq files

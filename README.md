@@ -4,6 +4,8 @@
 
 **Master M2 AMI2B**
 
+<img style="float: right;" src="pictures/paris-saclay.png">
+
 Contributors :
 
 * [Ambre Baumann](https://github.com/ambrebaumann)

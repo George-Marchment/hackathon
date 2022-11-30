@@ -327,6 +327,8 @@ workflow {
     res = test_george()
     res.view()
 
+    counting(bam.toList(),pathA)
+
     /*//Download Fastq files
     if (params.downloadFastq == true){
         fastq = downloadFastqFiles(Channel.from(params.SRAID))

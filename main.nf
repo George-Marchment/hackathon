@@ -266,11 +266,11 @@ process diffAnalysis {
 	publishDir 'data/differentialAnalysis', mode: 'copy'
 
 	input:
-	    path countingReads
-		path metadata
+        path countingReads
+        path metadata
 
 	output:
-		path "*.txt"
+        path "*.txt"
         path "*.pdf"
 
 

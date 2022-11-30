@@ -256,14 +256,13 @@ process counting {
 
 process test_george {
 
-    publishDir 'George/', mode: 'copy'
     
     output:
         stdout
 
     script:
         """
-        echo 'george' > test.txt
+        echo '${task.cpus}'
         """
 }
 

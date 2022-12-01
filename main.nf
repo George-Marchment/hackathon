@@ -125,7 +125,7 @@ process genomeIndex {
 
     script:
         """
-        STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
+        STAR --runMode genomeGenerate --runThreadN 16 \
         --genomeSAindexNbases 12 \
         --genomeFastaFiles ${fasta} \
         --sjdbGTFfile ${genomeAnnot}
@@ -201,7 +201,7 @@ process mappingFastQ {
             --outFilterMultimapNmax 10 \
             --genomeDir ${GenomeDir} \
             --readFilesIn ${R1} ${R2} \
-            --runThreadN ${task.cpus} \
+            --runThreadN 16 \
             --outSAMtype BAM SortedByCoordinate \
             --outStd BAM_SortedByCoordinate \
             > ${sample}.bam

@@ -35,7 +35,6 @@ process downloadFastqFiles {
     script:
         """
         fasterq-dump ${SRAID}
-        gzip ${SRAID}*.fastq
         """
 }
 

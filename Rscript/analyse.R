@@ -1,6 +1,11 @@
 library(DESeq2)
 library(ggplot2)
 
+#recup des fichiers
+args = commandArgs(trailingOnly=TRUE)  
+countingReads = args[1]
+metadata = args[2]
+
 #lecture
 countData = read.table(header=TRUE, row.names = 1, countingReads)
 countData = countData[,6:13]

@@ -276,7 +276,7 @@ process diffAnalysis {
 
 	script:
         """
-        Rscript Rscript/analyse.R
+        Rscript Rscript/analyse.R ${countingReads} ${metadata}
         """
     
 }

@@ -30,7 +30,7 @@ process downloadFastqFiles {
         val SRAID
 
     output:
-        tuple val(SRAID), path("*1.fastq.gz"), path ("*2.fastq.gz")  
+        tuple val(SRAID), path("*1.fastq"), path ("*2.fastq")  
 
     script:
         """

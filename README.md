@@ -48,20 +48,34 @@ To run the workflow, run the following commands :
 
 ```
 conda activate
-nextflow main.nf
+./run.sh
 ```
 
-When running the workflow, the user can specify which processes they want to be executed (by default they are all set to True in the *nextflow.config*).
+When running the workflow, the user can specify which processes they want to be executed (by default all the primary processes are all set to True, see *run.sh*).
 
-Imagine the case, the user does not want to run the *downloadFastqFiles* process (to download the reads), but wants to use the ones which have already been downloaded (on a previous run), they would simply have to run the following command :
+Imagine the case, the user does not want to run the *downloadFastqFiles* process (to download the reads), but wants to use the ones which have already been downloaded (on a previous run), they would simply have to change the run.sh to :
  
 ```
-nextflow main.nf --downloadFastqFiles False
+#!/bin/bash
+
+nextflow main.nf    \
+    --downloadFastq false \
+    --downloadGenome true \
+    --downloadAnnotation true \
+    --createGenome true \
+    --doQuality false \
+    --doTrimmomatic false \
+    --getTrimmomatic false \
+    --mapping true \
+    --indexBam true \
+    --countingReads true \
+    --differentialAnalysis true
 ```
 
-> Note :  The reads which are used in this case are the ones found in data/seqs/ and following the pattern SRR*_{1,2}.fastq. If the user wants to use different fastqs, they would have to change the *files* parameter in the same way.
+> Note :  The reads which are used in this case are the ones found in *data/seqs/* and following the pattern 'SRR*_{1,2}.fastq'. If the user wants to use different fastqs, they would have to change the *files* parameter int the *nextflow.config*.
+> Note : In the same way, the user would have to modify the other parameters in the *nextflow.config* and *run.sh* for more flexibility, in the case they want to do a different analysis.
 
-Here is directed acyclic graph representation of the workflow :
+Here is a representation of the directed acyclic graph corresponding to the workflow :
 
 <img src="pictures/dag.svg">
 

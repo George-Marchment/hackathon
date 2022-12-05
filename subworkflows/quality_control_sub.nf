@@ -18,6 +18,10 @@ include { trimming } from '../modules/trimming'
 
 //Definition of the subworkflow qualityControlSub
 workflow qualityControlSub{
+    //Inputs of the subworkflow 
+    take: 
+        fastq
+
     main:
         //Quality Control
         if (params.doQuality == true){

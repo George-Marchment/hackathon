@@ -58,7 +58,7 @@ workflow RNA_SEQ {
     //SUBWORKFLOW QUALITY CONTROL
     //***************************
     //Call the subworkflow "qualityControlSub" which can be found in the folder subworkflows
-    qualityControlSub()
+    qualityControlSub(fastq)
     //Retrieve the outputs of downloadFiles
     new_fastq = qualityControlSub.out.new_fastq
 

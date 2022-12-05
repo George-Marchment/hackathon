@@ -76,7 +76,7 @@ plotMA(res, main='PlotMa with alpha = 0.05',alpha=0.05)
 
 title = paste("PlotCounts - Min padj : ", row.names(res[which.min(res$padj),]), " : ", res[which.min(res$padj),]$padj, '\n')
 plotCounts(dds,which.min(res$padj),intgroup = "cond",  normalized = TRUE, main=title)
-title = paste("PlotCounts - Min padj : ", row.names(res[which.max(res$padj),]), " : ", res[which.max(res$padj),]$padj, '\n')
+title = paste("PlotCounts - Max padj : ", row.names(res[which.max(res$padj),]), " : ", res[which.max(res$padj),]$padj, '\n')
 plotCounts(dds,which.max(res$padj),intgroup = "cond",  normalized = TRUE, main=title)
 dev.off()
 

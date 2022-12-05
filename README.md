@@ -73,6 +73,7 @@ nextflow main.nf    \
 ```
 
 > Note :  The reads which are used in this case are the ones found in *data/seqs/* and following the pattern 'SRR*_{1,2}.fastq'. If the user wants to use different fastqs, they would have to change the *files* parameter int the *nextflow.config*.
+
 > Note : In the same way, the user would have to modify the other parameters in the *nextflow.config* and *run.sh* for more flexibility, in the case they want to do a different analysis.
 
 Here is a representation of the directed acyclic graph corresponding to the workflow :

@@ -33,7 +33,7 @@ workflow downloadFiles{
             pathG = concatenateGenome(downloadGenome(Channel.from(params.CHR)).toList())
         }else{
             //If the user doesn't want to download them, check if they exist
-            pathG = Channel.fromPath(params.referenceGenome, checkIfExists : true, followLinks: false)  
+            pathG = Channel.fromPath(params.referenceGenome, followLinks: false)  
         }
 
     emit:

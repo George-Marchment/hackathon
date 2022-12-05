@@ -42,7 +42,7 @@ workflow RNA_SEQ {
         pathA = genomeAnnotations()
     }else{
         //If the user doesn't want to download it, check if it exists
-        pathA = Channel.fromPath(params.annotatedGenome, checkIfExists : true, followLinks: false)
+        pathA = Channel.fromPath(params.annotatedGenome, followLinks: false)
     }
     
     //Create genome dir
@@ -50,7 +50,7 @@ workflow RNA_SEQ {
         pathGenomeDir = genomeIndex(pathG, pathA).collect()
     }else{
         //If the user doesn't want to create it, check if it exists
-        pathGenomeDir = Channel.fromPath(params.GenomeDir, checkIfExists : true, type: 'dir', followLinks: false).collect()
+        pathGenomeDir = Channel.fromPath(params.GenomeDir,  type: 'dir', followLinks: false).collect()
     }
 
     
@@ -69,7 +69,7 @@ workflow RNA_SEQ {
         bam = mappingFastQ(new_fastq, pathGenomeDir)
     }else{
         //In the case the user doesn't want to run the mapping process -> check that the files exist 
-        bam =  Channel.fromPath(params.mappingFiles, checkIfExists : true, followLinks: false)
+        bam =  Channel.fromPath(params.mappingFiles, followLinks: false)
     }
     
     //Index Bam
@@ -77,7 +77,7 @@ workflow RNA_SEQ {
         bai = indexBam(bam)
     }else{
         //In the case the user doesn't want to run the indexBam process -> check that the files exist 
-        bai =  Channel.fromPath(params.baiFiles, checkIfExists : true, followLinks: false)
+        bai =  Channel.fromPath(params.baiFiles, followLinks: false)
     }
     
     //Counting Reads
@@ -85,12 +85,12 @@ workflow RNA_SEQ {
         count = counting(bam.toList(),pathA)
     }else{
         //In the case the user doesn't want to run the countingReads process -> check that the file exist 
-    	count = Channel.fromPath('data/counting/countingReads.txt', checkIfExists : true, followLinks: false)
+    	count = Channel.fromPath('data/counting/countingReads.txt', followLinks: false)
     } 
 
     //Differential analysis
     if (params.differentialAnalysis == true){
-        diffAnalysis(Channel.fromPath('Rscript/analyse.R', checkIfExists : true, followLinks: false), count, Channel.fromPath('Rscript/metadata.txt', checkIfExists : true, followLinks: false))
+        diffAnalysis(Channel.fromPath('Rscript/analyse.R', followLinks: false), count, Channel.fromPath('Rscript/metadata.txt', followLinks: false))
     }
 
 }

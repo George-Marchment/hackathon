@@ -61,6 +61,10 @@ nextflow main.nf --downloadFastqFiles False
 
 > Note :  The reads which are used in this case are the ones found in data/seqs/ and following the pattern SRR*_{1,2}.fastq. If the user wants to use different fastqs, they would have to change the *files* parameter in the same way.
 
+Here is directed acyclic graph representation of the workflow :
+
+<img src="pictures/dag.svg">
+
 ___
 
 <img align="right" src="pictures/paris-saclay.png">

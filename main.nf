@@ -265,6 +265,7 @@ process diffAnalysis {
 	publishDir 'data/differentialAnalysis', mode: 'copy'
 
 	input:
+        path script
         path countingReads
         path metadata
 
@@ -275,7 +276,7 @@ process diffAnalysis {
 
 	script:
         """
-        Rscript Rscript/analyse.R ${countingReads} ${metadata}
+        Rscript ${script} ${countingReads} ${metadata}
         """
     
 }
@@ -391,7 +392,7 @@ workflow {
 
     //Differential analysis
     if (params.differentialAnalysis == true){
-        diffAnalysis(count, Channel.fromPath('Rscript/metadata.txt', checkIfExists : true, followLinks: false))
+        diffAnalysis(Channel.fromPath('Rscript/analyse.R', checkIfExists : true, followLinks: false), count, Channel.fromPath('Rscript/metadata.txt', checkIfExists : true, followLinks: false))
     }
     
 }

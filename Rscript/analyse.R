@@ -80,15 +80,9 @@ DEgenes_before = res_before[which(res_before$padj<0.05),]
 write.table(DEgenes_before, "DEgenes_beforeCleaning.txt", sep="\t")
 
 # -------------------------------------- 
-# Apply a Cleaning 'function'
+# Apply a Cleaning 'function' : Keep all genes with at least 5 reads in both conditions
 # -------------------------------------- 
-mutant = metadata[which(metadata[,2]==1),1]
-nonMutant = metadata[-which(metadata[,2]==1),1]
-for (indMutant in mutant){
-  for (indNonMutant in nonMutant) {
-    countData = countData[countData[,indMutant]!=0 | countData[,indNonMutant]!=0,]
-  }
-}
+countData = countData[which(rowSums(countData) > 5),]
 
 # ------ Second analyse : After Cleaning ------ 
 

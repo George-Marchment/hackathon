@@ -28,7 +28,7 @@ process genomeIndex {
 
     script:
         """
-        STAR --runMode genomeGenerate --runThreadN 16 \
+        STAR --runMode genomeGenerate --runThreadN ${params.nb_threads_star} \
         --genomeSAindexNbases 12 \
         --genomeFastaFiles ${fasta} \
         --sjdbGTFfile ${genomeAnnot}

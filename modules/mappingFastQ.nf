@@ -33,7 +33,7 @@ process mappingFastQ {
             --outFilterMultimapNmax 10 \
             --genomeDir ${GenomeDir} \
             --readFilesIn ${R1} ${R2} \
-            --runThreadN 16 \
+            --runThreadN ${params.nb_threads_star} \
             --outSAMtype BAM SortedByCoordinate \
             --outStd BAM_SortedByCoordinate \
             > ${sample}.bam
